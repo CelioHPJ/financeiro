@@ -1,0 +1,52 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  password_hash String
+  createdAt     DateTime      @default(now())
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  amount      Decimal         @db.Decimal(10, 2)
+  description String
+  type        TransactionType
+  category    Category
+  date        DateTime
+  createdAt   DateTime        @default(now())
+  
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum Category {
+  // Despesas
+  MORADIA
+  ALIMENTACAO
+  TRANSPORTE
+  SAUDE
+  LAZER
+  COMPRAS
+  OUTROS
+  
+  // Receitas
+  SALARIO
+  RENDIMENTOS
+  PIX
+  FREELANCE
+}
