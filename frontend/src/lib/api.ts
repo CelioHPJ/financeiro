@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // CORRETO - Isso lê a variável que configuramos na Vercel
-const api = axios.create({
+export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL
 });
 // Adiciona o token em todas as requisições
