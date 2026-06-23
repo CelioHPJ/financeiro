@@ -13,7 +13,7 @@ const createTransactionSchema = z.object({
   description: z.string().min(1),
   type: z.enum(['INCOME', 'EXPENSE']),
   category: z.enum(['MORADIA', 'ALIMENTACAO', 'TRANSPORTE', 'SAUDE', 'LAZER', 'COMPRAS', 'OUTROS', 'SALARIO', 'RENDIMENTOS', 'PIX', 'FREELANCE']),
-  date: z.string().transform((str) => new Date(str)),
+  date: z.string().transform((str) => new Date(`${str}T12:00:00Z`)),
 });
 
 export class TransactionController {
