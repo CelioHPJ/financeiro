@@ -132,7 +132,7 @@ export class TransactionController {
   }
 
   async delete(req: Request, res: Response) {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     try {
       // Verifica se a transação existe e pertence ao usuário autenticado
