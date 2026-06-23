@@ -18,3 +18,4 @@ routes.get('/auth/me', authController.me);
 routes.post('/transactions', transactionController.create);
 routes.get('/transactions', transactionController.list);
 routes.get('/transactions/summary', transactionController.summary);
+routes.delete('/transactions/:id', transactionController.delete);

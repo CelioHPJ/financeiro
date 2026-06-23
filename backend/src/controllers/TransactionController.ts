@@ -130,4 +130,28 @@ export class TransactionController {
       categorySummary,
     });
   }
+
+  async delete(req: Request, res: Response) {
+    const { id } = req.params;
+
+    try {
+      // Verifica se a transação existe e pertence ao usuário autenticado
+      const transaction = await prisma.transaction.findUnique({
+        where: { id }
+      });
+
+      if (!transaction || transaction.userId !== req.userId) {
+        return res.status(404).json({ error: 'Transação não encontrada.' });
+      }
+
+      await prisma.transaction.delete({
+        where: { id },
+      });
+
+      return res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao deletar transação:', error);
+      return res.status(500).json({ error: 'Erro interno ao deletar a transação.' });
+    }
+  }
 }

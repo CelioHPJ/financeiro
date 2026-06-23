@@ -1,4 +1,4 @@
-import { Home, Utensils, Car, Pill, Gamepad2, ShoppingBag, ReceiptText, ArrowUpCircle, Briefcase, Landmark } from 'lucide-react';
+import { Home, Utensils, Car, Pill, Gamepad2, ShoppingBag, ReceiptText, ArrowUpCircle, Briefcase, Landmark, Trash } from 'lucide-react';
 import { Transaction } from '../../lib/types';
 import { formatCurrency } from '../../lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -6,6 +6,7 @@ import { ptBR } from 'date-fns/locale';
 
 interface Props {
   transaction: Transaction;
+  onDelete?: (id: string) => void;
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -42,7 +43,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   OUTROS: 'bg-slate-100/70',
 };
 
-export function TransactionCard({ transaction }: Props) {
+export function TransactionCard({ transaction, onDelete }: Props) {
   const icon = CATEGORY_ICONS[transaction.category] || CATEGORY_ICONS.OUTROS;
   const bgColor = CATEGORY_COLORS[transaction.category] || CATEGORY_COLORS.OUTROS;
   
@@ -61,10 +62,19 @@ export function TransactionCard({ transaction }: Props) {
         </p>
       </div>
 
-      <div className="text-right shrink-0">
+      <div className="text-right shrink-0 flex items-center gap-3">
         <p className={`font-extrabold text-xl tracking-tight ${isIncome ? 'text-emerald-600' : 'text-slate-800'}`}>
           {isIncome ? '+' : '-'} {formatCurrency(transaction.amount)}
         </p>
+        {onDelete && (
+          <button
+            onClick={() => onDelete(transaction.id)}
+            className="p-2 text-slate-300 transition-colors duration-200 rounded-lg hover:bg-rose-50 hover:text-rose-500"
+            title="Excluir transação"
+          >
+            <Trash size={18} />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 import { X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '../../lib/api';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { formatCurrencyBRL, parseCurrencyToNumber } from '../../lib/formatters';
 
 interface Props {
   onClose: () => void;
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const transactionSchema = z.object({
-  amount: z.string().min(1, 'O valor é obrigatório'),
+  amount: z.number().positive('O valor deve ser maior que zero'),
   description: z.string().min(1, 'A descrição é obrigatória'),
   type: z.enum(['INCOME', 'EXPENSE']),
   category: z.enum([
@@ -30,9 +31,10 @@ export function TransactionModal({ onClose, onSuccess }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [type, setType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<TransactionFormData>({
+  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
+      amount: 0,
       type: 'EXPENSE',
       date: format(new Date(), 'yyyy-MM-dd'),
     }
@@ -46,12 +48,8 @@ export function TransactionModal({ onClose, onSuccess }: Props) {
   const onSubmit = async (data: TransactionFormData) => {
     try {
       setIsSubmitting(true);
-      const numericAmount = parseFloat(data.amount.replace(',', '.'));
       
-      await api.post('/transactions', {
-        ...data,
-        amount: numericAmount,
-      });
+      await api.post('/transactions', data);
       onSuccess();
     } catch (error) {
       console.error('Erro ao salvar transação', error);
@@ -108,12 +106,24 @@ export function TransactionModal({ onClose, onSuccess }: Props) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Valor (R$)</label>
-            <input
-              type="number"
-              step="0.01"
-              {...register('amount')}
-              placeholder="0,00"
-              className={`w-full text-4xl md:text-5xl font-extrabold text-slate-800 bg-slate-100/80 border-none rounded-[1.5rem] p-5 md:p-6 focus:ring-4 outline-none transition-all placeholder:text-slate-300 ${isIncome ? 'focus:ring-emerald-500/30' : 'focus:ring-violet-500/30'}`}
+            <Controller
+              name="amount"
+              control={control}
+              render={({ field: { onChange, value } }) => {
+                const displayValue = value ? formatCurrencyBRL(value.toFixed(2).replace('.', '')) : "";
+                return (
+                  <input
+                    type="text"
+                    value={displayValue}
+                    onChange={(e) => {
+                      const numericValue = parseCurrencyToNumber(e.target.value);
+                      onChange(numericValue);
+                    }}
+                    placeholder="0,00"
+                    className={`w-full text-4xl md:text-5xl font-extrabold text-slate-800 bg-slate-100/80 border-none rounded-[1.5rem] p-5 md:p-6 focus:ring-4 outline-none transition-all placeholder:text-slate-300 ${isIncome ? 'focus:ring-emerald-500/30' : 'focus:ring-violet-500/30'}`}
+                  />
+                );
+              }}
             />
             {errors.amount && <span className="text-rose-500 text-sm mt-2 ml-1 block font-medium">{errors.amount.message}</span>}
           </div>

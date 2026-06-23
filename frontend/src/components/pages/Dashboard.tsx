@@ -40,6 +40,26 @@ export function Dashboard() {
     fetchData();
   }, [selectedDate]);
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir este registro?")) return;
+
+    try {
+      await api.delete(`/transactions/${id}`);
+      
+      // Atualiza a lista imediatamente (UI otimista)
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      
+      // Atualiza o resumo silenciosamente
+      const month = selectedDate.getMonth() + 1;
+      const year = selectedDate.getFullYear();
+      const summaryRes = await api.get<DashboardData>('/transactions/summary', { params: { month, year } });
+      setSummaryData(summaryRes.data);
+    } catch (error) {
+      console.error('Erro ao deletar:', error);
+      alert('Não foi possível excluir o item.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 pb-28 lg:pb-12 font-sans selection:bg-violet-200">
       <header className="pt-8 pb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -110,7 +130,11 @@ export function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {transactions.map((transaction) => (
-                  <TransactionCard key={transaction.id} transaction={transaction} />
+                  <TransactionCard 
+                    key={transaction.id} 
+                    transaction={transaction} 
+                    onDelete={handleDelete}
+                  />
                 ))}
               </div>
             )}
